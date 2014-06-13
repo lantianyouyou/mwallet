@@ -1,0 +1,237 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cloud Wallet Prototype</title>
+    <link rel="stylesheet" href="jquery.mobile-1.1.1.min.css" />
+    <style>
+            /* App custom styles */
+        #output {
+            width: 100%;
+            min-height: 250px;
+        }
+    </style>
+  <script src="jquery-1.7.1.min.js">
+        </script>
+        <script src="jquery.mobile-1.1.1.min.js">
+        </script>
+
+    <script>        
+        function gotoDomains(){
+        	document.location = "home.html";
+        }
+    </script>
+	<script src="wallet.js" type="text/javascript">
+	</script>
+</head>
+<body onload="loadscreen()" >
+
+
+<table border="0" cellspacing="0" cellpadding="0" width="100%" align="center">
+
+                <tr width="100%" height="60">
+                    <td width="60" align="center">
+			<img  onclick=javascript:gotoDomains() border=0 src="img/back-arrow.png" width=60 height=60 >                    
+		    </td>	
+	            <td align="right"  vertical-align="center" bgcolor="white">
+			 <font size="5" color="#ff0000" id="fastpay">Fastpay: Mywallet 
+      </label></font>
+      
+		    </td>	
+		</tr>	
+
+</table>
+
+<div>
+        <form>
+            <table border="0" cellspacing="0" cellpadding="3" width="100%" align="center">
+
+                <tr id="MyWallet" name="payment" bgcolor="white" width="100%" align="center">
+                    <td width="360">
+			<a href="javascript:set_as_fastpay('MyWallet')" >
+                        <img border="0" src="img/kl_mywallet.png" width="360" height="260">
+                        </a>
+
+                    </td>
+                </tr>
+                <tr id="Premium Bank" name="payment" bgcolor="white" width="100%" align="center">
+
+                    <td width="360">
+                    
+                    <a href="javascript:set_as_fastpay('Premium Bank')" ><img border="0" src="img/kl_premium.png" width="360" height="260">
+                    </a>
+                    </td>
+                </tr>
+                <tr id="Lufthansa MasterCard" name="payment" bgcolor="white" width="100%" align="center">
+
+                    <td width="360"><a href="javascript:set_as_fastpay('Lufthansa MasterCard')" ><img border="0" src="img/kl_lufthansa.png" width="360" height="260"></a></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+
+
+
+
+<script>
+
+
+// Applet ID
+var aid = [0xA0, 0x00, 0x00, 0x00, 0x01, 0x02];
+
+var apdu = {
+    cla: 0x80,
+    command: 0x54,
+    p1: 0x00,
+    p2: 0x00,
+    p3: 0x00,
+    path: null,
+    data: null,
+    data2: null
+};
+
+
+var channelId = 0;
+var transmitResult = null;
+
+
+
+
+function loadscreen(){
+
+    //read fastpay configuration from wallet applet.
+    apdu.cla = 0x80;
+    apdu.command = 0x56;
+    apdu.p1 = 0x00;
+    apdu.p2 = 0x00;
+    apdu.p3 = 0x09;
+
+    apdu.data = "FFFF00020000000020";
+
+    var fastpay = "";
+    var aidstr = arrayToHexStr(aid);
+
+    addSecureElementTransactionListener();
+
+   
+
+       iccOpenChannelWithCallback(aidstr,function() {
+
+                // alert("in callback of iccOpenChannelWithCallback()...  aidstr="+aidstr);
+
+
+
+                 iccExchangeAPDUWithCallback(channelId,apdu,function() {
+                     //alert("in callback of iccExchangeAPDUWithCallback()...");
+                     //alert("apdu response="+transmitResult);
+
+                     var stringSize = parseInt(transmitResult.substring(0,2), 16);
+
+                     //alert("stringSize="+stringSize);
+                     //alert("transmitResult="+transmitResult);
+                     //alert("transmitResult.substring(2,"+stringSize*2+"="+transmitResult.substring(2,stringSize*2));
+                     if(stringSize>0)
+                            fastpay = toStr(transmitResult.substring(2,stringSize*2+2));
+
+                     //alert("retrieved fastpay: "+fastpay);
+
+                     if (!isValidChannel(channelId)) {
+                         alert("Not a valid channel to close.");
+                         return;
+                     }
+                     
+
+                     //alert("set  fastpay card background to red...");
+                     //alert("fastpay: "+fastpay);
+
+                      iccCloseChannelWithCallback(channelId, function() {
+				if(fastpay.length>0){
+
+					var cards = document.getElementsByName("payment");
+					//alert("cards.length="+cards.length);
+					for (var i = 0; i < cards.length; i++)
+					{
+					    //alert("i="+i+"  cards[i].getAttribute(id)="+cards[i].getAttribute("id")+" fastpay="+fastpay+"###");
+					    if (cards[i].getAttribute("id") == fastpay)
+					    {
+						//alert("find fastpay in card list!");
+						document.getElementById(cards[i].getAttribute("id")).setAttribute("bgcolor", "red");
+					    }
+					    else
+						document.getElementById(cards[i].getAttribute("id")).setAttribute("bgcolor", "white");
+					}
+
+			   	 }
+			    });
+		  });
+			
+	});
+ 
+
+}
+
+
+
+function set_as_fastpay(cardname) {
+    if (cardname)
+    {
+        
+        apdu.cla = 0x80;
+        apdu.command = 0x54;
+        apdu.p1 = 0x00;
+        apdu.p2 = 0x00;
+                
+        var objectSize = cardname.length+1;
+                
+		apdu.p3= objectSize+9;
+                    //alert("apdu.p3="+apdu.p3);
+
+		    //alert("cardname.length="+cardname.length.toString(16));
+
+        apdu.data = "FFFF000200000000"+byteToHex(objectSize)+byteToHex(cardname.length)+toHex(cardname);
+
+            //alert(byteToHex(apdu.cla)+byteToHex(apdu.command)+byteToHex(apdu.p1)+byteToHex(apdu.p2)+byteToHex(apdu.p3)+apdu.data);
+
+
+		    var aidstr = arrayToHexStr(aid);
+              //      alert("open channel to: (" + aidstr + ")...");
+      
+            iccOpenChannelWithCallback(aidstr,function() {
+
+                iccExchangeAPDUWithCallback(channelId,apdu,function() {
+		            if (!isValidChannel(channelId)) {
+		                appendTextAndScroll("#output", "Not a valid channel to close.");
+		                return;
+		            }
+		            
+		            iccCloseChannelWithCallback(channelId, function() {
+					     // alert("set FastPay completed.");
+
+					    //alert("set  fastpay card background to red...");
+					    var cards = document.getElementsByName("payment");
+					    //alert("cards.length="+cards.length);
+					    for (var i = 0; i < cards.length; i++)
+					    {
+						//alert("cards.length="+cards.length+" I="+i+"  cards[i].getAttribute(id)="+cards[i].getAttribute("id"));
+						if (cards[i].getAttribute("id") == cardname)
+						{
+						    document.getElementById(cards[i].getAttribute("id")).setAttribute("bgcolor", "red");
+						    document.getElementById("fastpay").innerHTML = "Fastpay: "+cardname;
+						}
+						else
+						    document.getElementById(cards[i].getAttribute("id")).setAttribute("bgcolor", "white");
+					    }
+				   	
+			  }); 
+                });
+
+            });
+      }
+}
+
+
+</script>
+
+</body>
+</html>

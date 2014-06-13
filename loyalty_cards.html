@@ -1,0 +1,48 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Cloud Wallet Prototype</title>
+    <link rel="stylesheet" href="jquery.mobile-1.1.1.min.css" />
+    <script>
+        
+        function gotoDomains(){
+        	document.location = "home.html";
+        }
+    </script>
+</head>
+<body background="img/bg.png">
+<div>&nbsp; <img onclick="javascript:gotoDomains()" border="0" src="img/back-arrow.png" width="60" height="60"> </div>
+<div id="page1" data-role="page">
+<div>
+<form>
+<table cellspacing="0" cellpadding="0"
+  width="100%" align="center" border=0 >
+
+                <tr id="HSV" name="loyalty"  width="100%" align="center">
+                    <td width="360">
+			<a href="javascript:set_as_fastpay('MyWallet')" >
+                        <img border="0" src="img/kl_hsv_clubkarte.png" width="360" height="260">
+                        </a>
+
+                    </td>
+                </tr>
+                <tr id="Morris" name="loyalty" width="100%" align="center">
+
+                    <td width="360">
+                    
+                    <a href="javascript:set_as_fastpay('Premium Bank')" ><img border="0" src="img/kl_morris.png" width="360" height="260">
+                    </a>
+                    </td><!--td>       <input type="checkbox" name="Premium Bank"  onclick="set_as_fastpay(this)" groupKey="cards" 
+                       </td-->
+
+                </tr>
+
+
+
+</table></form></div></div>
+
+
+</body>
+</html>
