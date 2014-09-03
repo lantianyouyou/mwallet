@@ -1,18 +1,21 @@
 {
-  "name": "Cloud Wallet",
-  "description": "CloudWalletDemo",
+  "name": "Mobile Wallet",
+  "description": "Mobile Wallet Demo",
   "launch_path": "/index.html",
+
   "permissions": [
     "telephony",
     "mozApps",
     "nfc"
   ],
+
+  
   "developer": {
     "name": "Deutsche Telekom",
     "url": "http://www.laboratories.telekom.com"
   },
   "icons": {
-    "120": "/style/icons/my-wallet_96x96.png"
+     "128": "/style/icons/icon-128.png"
   },
   "default_locale": "en"
 }
